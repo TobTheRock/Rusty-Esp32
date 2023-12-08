@@ -41,9 +41,9 @@ cargo run
 
 ## Tools
 
-- Gui for the logic analyzer, e.g. from the AUR:
+- Saleae Gui for the logic analyzer, e.g. from the AUR:
 ```
-yay -S logicanalyzer-git
+yay -S saleae-logic2
 ```
 - Gui for the digitial oscilliscope, e.g. from the AUR:
 ```
