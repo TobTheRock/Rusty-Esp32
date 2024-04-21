@@ -13,10 +13,12 @@ esp-backtrace = { version = "0.11.0", features = [
     "panic-handler",
     "println",
 ] }
-esp-hal = { version = "0.16.0", features = [ "esp32c3" ] }
+esp-hal = { version = "0.16.0", features = ["esp32c3"] }
 esp-println = { version = "0.9.0", features = ["esp32c3"] }
 heapless = "0.8.0"
-smoltcp = { version = "0.11.0", default-features = false, features = ["proto-ipv4"] }
+smoltcp = { version = "0.11.0", default-features = false, features = [
+    "proto-ipv4",
+] }
 
 [profile.dev]
 # Rust debug is too slow.
@@ -25,10 +27,10 @@ opt-level = "s"
 
 [dependencies.esp-wifi]
 version = "0.4.0"
-features = ["esp32c3", "wifi", "esp-now", "ipv4", "tcp"]
+features = ["esp32c3", "wifi", "esp-now", "ipv4", "tcp", "dhcpv4"]
 
 [profile.release]
-codegen-units = 1 # LLVM can perform better optimizations using a single thread
+codegen-units = 1        # LLVM can perform better optimizations using a single thread
 debug = 2
 debug-assertions = false
 incremental = false
