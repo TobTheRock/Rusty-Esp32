@@ -6,6 +6,7 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+embedded-io = "0.6.1"
 esp-backtrace = { version = "0.11.0", features = [
     "esp32c3",
     "exception-handler",
@@ -14,10 +15,17 @@ esp-backtrace = { version = "0.11.0", features = [
 ] }
 esp-hal = { version = "0.16.0", features = [ "esp32c3" ] }
 esp-println = { version = "0.9.0", features = ["esp32c3"] }
+heapless = "0.8.0"
+smoltcp = { version = "0.11.0", default-features = false, features = ["proto-ipv4"] }
+
 [profile.dev]
-# Rust debug is too slow. 
+# Rust debug is too slow.
 # For debug builds always builds with some optimization
 opt-level = "s"
+
+[dependencies.esp-wifi]
+version = "0.4.0"
+features = ["esp32c3", "wifi", "esp-now", "ipv4", "tcp"]
 
 [profile.release]
 codegen-units = 1 # LLVM can perform better optimizations using a single thread
