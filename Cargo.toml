@@ -6,17 +6,31 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-embedded-io = "0.6.1"
-esp-backtrace = { version = "0.11.0", features = [
+embassy-executor = { version = "0.5", features = [
+    "nightly",
+    "integrated-timers",
+    "executor-thread",
+] }
+embassy-time = "0.3"
+# embedded-io = "0.6"
+esp-backtrace = { version = "0.11", features = [
     "esp32c3",
     "exception-handler",
     "panic-handler",
     "println",
 ] }
-esp-hal = { version = "0.16.0", features = ["esp32c3"] }
-esp-println = { version = "0.9.0", features = ["esp32c3"] }
-heapless = "0.8.0"
-smoltcp = { version = "0.11.0", default-features = false, features = [
+esp-hal = { version = "0.17", features = [
+    "esp32c3",
+    "embassy",
+    "embassy-executor-thread",
+    # "embassy-time-timg0",
+    "embassy-time-systick-16mhz",
+] }
+esp-println = { version = "0.9", features = ["esp32c3", "log"] }
+heapless = "0.8"
+log = "0.4"
+# riscv-rt = "0.12"
+smoltcp = { version = "0.11", default-features = false, features = [
     "proto-ipv4",
 ] }
 
@@ -26,7 +40,7 @@ smoltcp = { version = "0.11.0", default-features = false, features = [
 opt-level = "s"
 
 [dependencies.esp-wifi]
-version = "0.4.0"
+version = "0.5"
 features = ["esp32c3", "wifi", "esp-now", "ipv4", "tcp", "dhcpv4"]
 
 [profile.release]
