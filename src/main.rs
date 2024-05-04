@@ -8,18 +8,21 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::ClockControl, embassy, peripherals::Peripherals, prelude::*, systimer::SystemTimer,
 };
+use log::info;
 
 #[embassy_executor::task]
 async fn run() {
     loop {
-        esp_println::println!("Hello world from embassy using esp-hal-async!");
+        info!("Hello world from embassy using esp-hal-async!");
         Timer::after(Duration::from_millis(1_000)).await;
     }
 }
 
 #[main]
 async fn main(spawner: Spawner) {
-    esp_println::println!("Init!");
+    // Initialize the logger (needs feature log from esp_println)
+    esp_println::logger::init_logger(log::LevelFilter::Info);
+    info!("Init!");
     let peripherals = Peripherals::take();
     let system = peripherals.SYSTEM.split();
     let clocks = ClockControl::boot_defaults(system.clock_control).freeze();
@@ -35,7 +38,7 @@ async fn main(spawner: Spawner) {
     spawner.spawn(run()).ok();
 
     loop {
-        esp_println::println!("Bing!");
+        info!("Bing!");
         Timer::after(Duration::from_millis(5_000)).await;
     }
 }
