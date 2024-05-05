@@ -20,8 +20,8 @@ use log::info;
 use static_cell::make_static;
 
 // https://github.com/esp-rs/esp-wifi/blob/main/esp-wifi/examples/embassy_dhcp.rs
-const SSID: &str = env!("SSID");
-const PASSWORD: &str = env!("PASSWORD");
+
+mod wifi;
 
 #[main]
 async fn main(spawner: Spawner) {
@@ -56,11 +56,9 @@ async fn main(spawner: Spawner) {
     let timer_group0 = TimerGroup::new_async(peripherals.TIMG0, &clocks);
     embassy::init(&clocks, timer_group0);
 
-    let config = Config::dhcpv4(Default::default());
-
-    let seed = 1234; // very random, very secure seed
-
     // Init network stack
+    let config = Config::dhcpv4(Default::default());
+    let seed: u64 = 1234; // very random, very secure seed
     let stack = &*make_static!(Stack::new(
         wifi_interface,
         config,
@@ -74,6 +72,7 @@ async fn main(spawner: Spawner) {
     let mut rx_buffer = [0; 4096];
     let mut tx_buffer = [0; 4096];
 
+    // TODO use async function
     loop {
         if stack.is_link_up() {
             break;
@@ -133,38 +132,13 @@ async fn main(spawner: Spawner) {
 }
 
 #[embassy_executor::task]
-async fn connection(mut controller: WifiController<'static>) {
+async fn connection(controller: WifiController<'static>) {
     info!("start connection task");
     info!("Device capabilities: {:?}", controller.get_capabilities());
+    let mut wifi_connection = wifi::ClientWifiConnection::start_new(controller).await;
     loop {
-        match esp_wifi::wifi::get_wifi_state() {
-            WifiState::StaConnected => {
-                // wait until we're no longer connected
-                controller.wait_for_event(WifiEvent::StaDisconnected).await;
-                Timer::after(Duration::from_millis(5000)).await
-            }
-            _ => {}
-        }
-        if !matches!(controller.is_started(), Ok(true)) {
-            let client_config = Configuration::Client(ClientConfiguration {
-                ssid: SSID.try_into().unwrap(),
-                password: PASSWORD.try_into().unwrap(),
-                ..Default::default()
-            });
-            controller.set_configuration(&client_config).unwrap();
-            info!("Starting wifi");
-            controller.start().await.unwrap();
-            info!("Wifi started!");
-        }
-        info!("About to connect...");
-
-        match controller.connect().await {
-            Ok(_) => info!("Wifi connected!"),
-            Err(e) => {
-                info!("Failed to connect to wifi: {e:?}");
-                Timer::after(Duration::from_millis(5000)).await
-            }
-        }
+        wifi_connection.connect().await;
+        Timer::after(Duration::from_millis(5000)).await
     }
 }
 
