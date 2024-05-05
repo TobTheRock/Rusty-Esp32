@@ -11,7 +11,11 @@ embassy-executor = { version = "0.5", features = [
     "integrated-timers",
     "executor-thread",
 ] }
+# embassy net is built on smoltcp
+embassy-net = { version = "0.4", features = ["tcp", "udp", "dhcpv4"] }
+# embassy-net-driver = "0.2"
 embassy-time = "0.3"
+embedded-io-async = "0.6"
 # embedded-io = "0.6"
 esp-backtrace = { version = "0.11", features = [
     "esp32c3",
@@ -23,16 +27,17 @@ esp-hal = { version = "0.17", features = [
     "esp32c3",
     "embassy",
     "embassy-executor-thread",
-    # "embassy-time-timg0",
-    "embassy-time-systick-16mhz",
+    "embassy-time-timg0",
+    # "embassy-time-systick-16mhz",
 ] }
 esp-println = { version = "0.9", features = ["esp32c3", "log"] }
 heapless = "0.8"
 log = "0.4"
+static_cell = { version = "2.1", features = ["nightly"] }
 # riscv-rt = "0.12"
-smoltcp = { version = "0.11", default-features = false, features = [
-    "proto-ipv4",
-] }
+# smoltcp = { version = "0.11", default-features = false, features = [
+#     "proto-ipv4",
+# ] }
 
 [profile.dev]
 # Rust debug is too slow.
@@ -41,7 +46,7 @@ opt-level = "s"
 
 [dependencies.esp-wifi]
 version = "0.5"
-features = ["esp32c3", "wifi", "esp-now", "ipv4", "tcp", "dhcpv4"]
+features = ["esp32c3", "wifi-default", "embassy-net"]
 
 [profile.release]
 codegen-units = 1        # LLVM can perform better optimizations using a single thread
