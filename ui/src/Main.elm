@@ -8,8 +8,9 @@ module Main exposing (..)
 
 
 import Browser
-import Html exposing (Html, button, div, text)
+import Html exposing (Html, button, div, text, input)
 import Html.Events exposing (onClick)
+import Html.Attributes exposing (type_, value)
 
 
 
@@ -24,12 +25,15 @@ main =
 -- MODEL
 
 
-type alias Model = Int
+type alias Model =
+  { value : Int
+  , result: String
+  }
 
 
 init : Model
 init =
-  0
+  Model 0 ""
 
 
 
@@ -39,18 +43,19 @@ init =
 type Msg
   = Increment
   | Decrement
+  | InvokeUpdate
 
 
 update : Msg -> Model -> Model
 update msg model =
   case msg of
     Increment ->
-      model + 1
+      Model (model.value + 1) ""
 
     Decrement ->
-      model - 1
+      Model (model.value - 1) ""
 
-
+    InvokeUpdate -> Model model.value "result"
 
 -- VIEW
 
@@ -59,6 +64,8 @@ view : Model -> Html Msg
 view model =
   div []
     [ button [ onClick Decrement ] [ text "-" ]
-    , div [] [ text (String.fromInt model) ]
+    , input [type_ "text", value (String.fromInt model.value) ] []
     , button [ onClick Increment ] [ text "+" ]
+    , button [ onClick InvokeUpdate ] [ text "Update" ]
+    , div [] [ text ("Result: " ++ model.result) ]
     ]
