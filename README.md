@@ -8,6 +8,7 @@ Generate via [esp-template](https://docs.esp-rs.org/esp-hal/esp-hal/0.17.0/esp32
 - Be sure to have the following installed:
   -- clang
   -- libuv
+  -- just
   -- e.g. run
 
 ```
@@ -40,6 +41,7 @@ sudo udevadm control --reload-rules && sudo udevadm trigger
 Just execute
 
 ```
+just ui
 cargo run
 ```
 
