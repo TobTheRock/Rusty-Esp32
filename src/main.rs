@@ -21,6 +21,7 @@ use static_cell::make_static;
 
 // https://github.com/esp-rs/esp-wifi/blob/main/esp-wifi/examples/embassy_dhcp.rs
 
+mod web_server;
 mod wifi;
 
 #[main]
@@ -59,20 +60,22 @@ async fn main(spawner: Spawner) {
     // Init network stack
     let config = Config::dhcpv4(Default::default());
     let seed: u64 = 1234; // very random, very secure seed
-    let stack = &*make_static!(Stack::new(
+    let max_sockets = 16;
+    let stack = make_static!(Stack::new(
         wifi_interface,
         config,
-        make_static!(StackResources::<3>::new()),
+        make_static!(StackResources::<16>::new()),
         seed
     ));
 
     spawner.spawn(connection(controller)).ok();
-    spawner.spawn(net_task(&stack)).ok();
+    spawner.spawn(net_task(stack)).ok();
 
     let mut rx_buffer = [0; 4096];
     let mut tx_buffer = [0; 4096];
 
     // TODO use async function
+    // stack.
     loop {
         if stack.is_link_up() {
             break;
@@ -86,49 +89,50 @@ async fn main(spawner: Spawner) {
             info!("Got IP: {}", config.address);
             break;
         }
-        Timer::after(Duration::from_millis(500)).await;
     }
 
-    loop {
-        Timer::after(Duration::from_millis(1_000)).await;
+    web_server::start_webserver(spawner, stack);
 
-        let mut socket = TcpSocket::new(&stack, &mut rx_buffer, &mut tx_buffer);
+    // loop {
+    //     Timer::after(Duration::from_millis(1_000)).await;
 
-        socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
+    //     let mut socket = TcpSocket::new(&stack, &mut rx_buffer, &mut tx_buffer);
 
-        let remote_endpoint = (Ipv4Address::new(142, 250, 185, 115), 80);
-        info!("connecting...");
-        let r = socket.connect(remote_endpoint).await;
-        if let Err(e) = r {
-            info!("connect error: {:?}", e);
-            continue;
-        }
-        info!("connected!");
-        let mut buf = [0; 1024];
-        loop {
-            use embedded_io_async::Write;
-            let r = socket
-                .write_all(b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n")
-                .await;
-            if let Err(e) = r {
-                info!("write error: {:?}", e);
-                break;
-            }
-            let n = match socket.read(&mut buf).await {
-                Ok(0) => {
-                    info!("read EOF");
-                    break;
-                }
-                Ok(n) => n,
-                Err(e) => {
-                    info!("read error: {:?}", e);
-                    break;
-                }
-            };
-            info!("{}", core::str::from_utf8(&buf[..n]).unwrap());
-        }
-        Timer::after(Duration::from_millis(3000)).await;
-    }
+    //     socket.set_timeout(Some(embassy_time::Duration::from_secs(10)));
+
+    //     let remote_endpoint = (Ipv4Address::new(142, 250, 185, 115), 80);
+    //     info!("connecting...");
+    //     let r = socket.connect(remote_endpoint).await;
+    //     if let Err(e) = r {
+    //         info!("connect error: {:?}", e);
+    //         continue;
+    //     }
+    //     info!("connected!");
+    //     let mut buf = [0; 1024];
+    //     loop {
+    //         use embedded_io_async::Write;
+    //         let r = socket
+    //             .write_all(b"GET / HTTP/1.0\r\nHost: www.mobile-j.de\r\n\r\n")
+    //             .await;
+    //         if let Err(e) = r {
+    //             info!("write error: {:?}", e);
+    //             break;
+    //         }
+    //         let n = match socket.read(&mut buf).await {
+    //             Ok(0) => {
+    //                 info!("read EOF");
+    //                 break;
+    //             }
+    //             Ok(n) => n,
+    //             Err(e) => {
+    //                 info!("read error: {:?}", e);
+    //                 break;
+    //             }
+    //         };
+    //         info!("{}", core::str::from_utf8(&buf[..n]).unwrap());
+    //     }
+    //     Timer::after(Duration::from_millis(3000)).await;
+    // }
 }
 
 #[embassy_executor::task]
